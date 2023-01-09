@@ -2,6 +2,8 @@
 {% block title %}<title>資料表修改(二)</title>{% endblock %}
 {% block content %}
   <h2>student 資料表修改(二)</h2>
+  {% if request.user.is_authenticated %}
+  <p>已登入~</p>
   <form action="/edit2/{{unit.id}}/save" method="POST" name="form1">
 	{% csrf_token %}
 	<table border="1" cellspacing="1" cellpadding="4">
@@ -51,4 +53,9 @@
 	</table>
 	<span style="color:red">{{message}}</span>
   </form>
+  {% else %}
+        <p>您尚未登入喔~</p>
+        <a href="/login/">登入</a>
+
+  {% endif %}
 {% endblock %}

@@ -2,14 +2,20 @@
 {% load static %}
 {% block title %}<title>資料表刪除</title>{% endblock %}
 {% block content %}
-	<h1">student 資料表刪除</h1>
-	<form action="." method="POST" name="form1">
-		{% csrf_token %}
-		<div>請輸入編號：<input type="text" name="cId" />
-		</div>
-		<div>
-		<input type="submit" name="button" id="button" value="確定刪除" />
-		</div> 
-		<span style="color:red">{{message}}</span>
-	</form>
+	<h2>student 資料表刪除</h2>
+	{% if request.user.is_authenticated %}
+		<form action="." method="POST" name="form1">
+			{% csrf_token %}
+			<div>請輸入編號：<input type="text" name="cId" />
+			</div>
+			<div>
+			<input type="submit" name="button" id="button" value="確定刪除" />
+			</div> 
+			<span style="color:red">{{message}}</span>
+		</form>
+	{% else %}
+        <p>您尚未登入喔~</p>
+        <a href="/login/">登入</a>
+
+  	{% endif %}
 {% endblock %}

@@ -1,6 +1,22 @@
 from django.shortcuts import render, redirect
 from studentsapp.models import student
 from studentsapp.forms import PostForm
+from django.contrib.auth import authenticate
+from django.contrib import auth
+from django.http import HttpResponse
+from django.contrib.auth.models import User
+import datetime
+
+def set_cookie(request,key=None,value=None):
+	response = HttpResponse('Cookie 儲存完畢!')
+	response.set_cookie(key,value)
+	return response
+
+def get_cookie(request,key=None):
+	if key in request.COOKIES:
+		return HttpResponse('%s : %s' %(key,request.COOKIES[key]))
+	else:
+		return HttpResponse('Cookie 不存在!')	
 
 def listone(request): 
 	try: 
@@ -14,8 +30,18 @@ def listall(request):
     return render(request, "listall.html", locals())
 	
 def index(request):  
-    students = student.objects.all().order_by('id')  #讀取資料表, 依 id 遞增排序
-    return render(request, "index.html", locals())		
+	students = student.objects.all().order_by('id')  #讀取資料表, 依 id 遞增排序
+	if "counter" in request.COOKIES:
+		counter=int(request.COOKIES["counter"])
+		counter+=1
+	else:		
+		counter=1	
+	tomorrow = datetime.datetime.now() + datetime.timedelta(days = 1)
+	tomorrow = datetime.datetime.replace(tomorrow, hour=0, minute=0, second=0)
+	expires = datetime.datetime.strftime(tomorrow, "%a, %d-%b-%Y %H:%M:%S GMT") 
+	m=render(request, "index.html", locals())
+	m.set_cookie("counter",counter,expires=expires)
+	return m
 
 def post(request):
 	if request.method == "POST":		#如果是以POST方式才處理
@@ -26,16 +52,19 @@ def post(request):
 	
 def post1(request):  #新增資料，資料不作驗證
 	if request.method == "POST":	  #如果是以POST方式才處理
-		cName = request.POST['cName'] #取得表單輸入資料
-		cSex =  request.POST['cSex']
-		cBirthday =  request.POST['cBirthday']
-		cEmail = request.POST['cEmail']
-		cPhone =  request.POST['cPhone']
-		cAddr =  request.POST['cAddr']
-		#新增一筆記錄
-		unit = student.objects.create(cName=cName, cSex=cSex, cBirthday=cBirthday, cEmail=cEmail,cPhone=cPhone, cAddr=cAddr) 
-		unit.save()  #寫入資料庫
-		return redirect('/index/')	
+		if request.user.is_authenticated:
+			name=request.user.username
+			cName = request.POST['cName'] #取得表單輸入資料
+			cSex =  request.POST['cSex']
+			cBirthday =  request.POST['cBirthday']
+			cEmail = request.POST['cEmail']
+			cPhone =  request.POST['cPhone']
+			cAddr =  request.POST['cAddr']
+			#新增一筆記錄
+			unit = student.objects.create(cName=cName, cSex=cSex, cBirthday=cBirthday, cEmail=cEmail,cPhone=cPhone, cAddr=cAddr) 
+			unit.save()  #寫入資料庫
+			auth.logout(request)
+			return redirect('/index/')	
 	else:
 		message = '請輸入資料(資料不作驗證)'
 	return render(request, "post1.html", locals())	
@@ -53,6 +82,7 @@ def post2(request):  #新增資料，資料必須驗證
 			#新增一筆記錄
 			unit = student.objects.create(cName=cName, cSex=cSex, cBirthday=cBirthday, cEmail=cEmail,cPhone=cPhone, cAddr=cAddr) 
 			unit.save()  #寫入資料庫
+			auth.logout(request)
 			message = '已儲存...'
 			return redirect('/index/')	
 		else:
@@ -60,16 +90,18 @@ def post2(request):  #新增資料，資料必須驗證
 	else:
 		message = '姓名、性別、生日必須輸入！'
 		postform = PostForm()
-	return render(request, "post2.html", locals())		
+	return render(request, "post2.html", locals())				
 		
 def delete(request,id=None):  #刪除資料
 	if id!=None:
 		if request.method == "POST":  #如果是以POST方式才處理
 			id=request.POST['cId'] #取得表單輸入的編號
 		try:
-			unit = student.objects.get(id=id)  
-			unit.delete()
-			return redirect('/index/')
+			unit = student.objects.get(id=id)
+			if request.user.is_authenticated:
+				unit.delete()
+				auth.logout(request)
+				return redirect('/index/')
 		except:
 			message = "讀取錯誤!"			
 	return render(request, "delete.html", locals())	
@@ -85,6 +117,7 @@ def edit(request,id=None,mode=None):
 		unit.cAddr=request.GET['cAddr']		
 		unit.save()  #寫入資料庫
 		message = '已修改...'
+		auth.logout(request)
 		return redirect('/index/')	
 	else: # 由網址列
 		try:
@@ -122,3 +155,28 @@ def edit2(request,id=None,mode=None):
 def postform(request):  #新增資料，資料必須驗證
 	postform = PostForm()  #建立PostForm物件
 	return render(request, "postform.html", locals())		  
+
+def index2(request):
+	if request.user.is_authenticated:
+	   name=request.user.username
+	return render(request, "index2.html", locals())
+
+def login(request):
+	if request.method == 'POST':
+		name = request.POST['username']
+		password = request.POST['password']
+		user = authenticate(username=name, password=password)
+		if user is not None:
+			if user.is_active:
+				auth.login(request,user)
+				return redirect('/index/')
+				message = '登入成功！'
+			else:
+				message = '帳號尚未啟用！'
+		else:
+			message = '登入失敗！'
+	return render(request, "login.html", locals())
+
+def logout(request):
+	auth.logout(request)
+	return redirect('/index/')

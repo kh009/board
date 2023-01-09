@@ -2,7 +2,9 @@
 {% block title %}<title>資料表新增(一)</title>{% endblock %}
 {% block content %}
   <h2>student 資料表新增(一)</h2>
-  <form action="." method="POST" name="form1">
+  {% if request.user.is_authenticated %}
+    <form action="." method="POST" name="form1">
+    <p>已登入~</p>
     {% csrf_token %}
     <table border="1" cellspacing="1" cellpadding="4">
       <tr>
@@ -17,7 +19,7 @@
           女生
         </td>
       </tr>
-       <tr>
+      <tr>
         <th>生日</th><td><input type="text" id="cBirthday" name="cBirthday"/></td>
       </tr>
       <tr>
@@ -35,5 +37,9 @@
       </tr>
     </table>
     <span style="color:red">{{message}}</span>
-  </form>
+    </form>
+  {% else %}
+        <p>您尚未登入喔~</p>
+        <a href="/login/">登入</a>
+  {% endif %}
 {% endblock %}

@@ -35,4 +35,8 @@ urlpatterns = [
 
 	path('edit2/<int:id>/<str:mode>', views.edit2),
 	path('postform/', views.postform), # 表單驗證
+	path('index2/', views.index2),
+	path('login/', views.login),
+
+    path('logout/', views.logout),
 ]
