@@ -41,7 +41,10 @@
 					{% endif %}
 					&nbsp;
 					{% if unit.bLINE != "" %}
-					  <!-- <a href="{{unit.bweb}}" target="_blank"> -->
+						{% if unit.bLINE == "test123" %}
+							<a href="https://line.me/ti/p/0hLMmwBF2G" target="_blank">
+						{% endif %}
+					  
 					  <img src="{% static "images/LINE.png" %}" width="16" height="16" border="0" align="absmiddle">LineID:{{unit.bLINE}}</a>
 					{% endif %}
 				  </p>
