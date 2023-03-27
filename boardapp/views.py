@@ -38,7 +38,7 @@ def post(request):  #新增留言
 		  mail = postform.cleaned_data['boardmail']
 		  LINE =  postform.cleaned_data['boardLINE']
 		  content =  postform.cleaned_data['boardcontent']
-		  unit = models.BoardUnit.objects.create(bname=name, bgender=gender, bsubject=subject, bmail=mail, bweb=LINE, bcontent=content, bresponse='')  #新增資料記錄
+		  unit = models.BoardUnit.objects.create(bname=name, bgender=gender, bsubject=subject, bmail=mail, bLINE=LINE, bcontent=content, bresponse='')  #新增資料記錄
 		  unit.save()  #寫入資料庫
 		  message = '已儲存...'
 		  postform = forms.PostForm()
